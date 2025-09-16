@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ResearchToken is ERC20, Ownable {
-    constructor() ERC20("Research Access Token", "RAT") Ownable(msg.sender) {
+contract ResearchToken is ERC721, Ownable {
+    constructor() ERC721("Research Access Token", "RAT") Ownable(msg.sender) {
         _mint(msg.sender, 1000 * 10 ** decimals());
     }
 
