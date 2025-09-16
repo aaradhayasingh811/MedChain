@@ -113,27 +113,32 @@ const Navbar = ({ user, setUser, walletAddress }) => {
 
   // Navigation items based on user role
   const getNavItems = () => {
-    if (!user) return [];
-    
-    const baseItems = [
-      { to: "/dashboard", label: "Dashboard" },
-      { to: "/upload", label: "Upload" },
-      { to: "/access", label: "Access" }
-    ];
-    
-    switch(user.role) {
-      case "patient":
-        return [...baseItems, { to: "/grant", label: "Consent" }];
-      case "doctor":
-        return baseItems;
-      case "emergency":
-        return [...baseItems, { to: "/emergency", label: "Emergency" }];
-      case "researcher":
-        return [...baseItems, { to: "/research", label: "Research" }];
-      default:
-        return baseItems;
-    }
-  };
+  if (!user) return [];
+
+  const baseItems = [
+    { to: "/dashboard", label: "Dashboard" },
+    { to: "/upload", label: "Upload" },
+    { to: "/access", label: "Access" }
+  ];
+
+  switch (user.role) {
+    case "patient":
+      return [
+        { to: "/dashboard", label: "Dashboard" },
+        { to: "/upload", label: "Upload" },
+        { to: "/grant", label: "Consent" }
+      ];
+    case "doctor":
+      return baseItems;
+    case "emergency":
+      return [...baseItems, { to: "/emergency", label: "Emergency" }];
+    case "researcher":
+      return [...baseItems, { to: "/research", label: "Research" }];
+    default:
+      return baseItems;
+  }
+};
+
 
   const navItems = getNavItems();
 
