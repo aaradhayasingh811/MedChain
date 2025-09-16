@@ -60,7 +60,7 @@ contracts/
   AccessControl.sol
   HealthRecord.sol
   ResearchToken.sol
-fihr-server/
+fhir-server/
 test/
 zk/
 ```
