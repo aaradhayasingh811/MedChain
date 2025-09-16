@@ -67,3 +67,6 @@ zk/proofs/
 # MongoDB local
 /data/db
 /data/configdb
+
+# Contracts
+contracts/node_modules/
