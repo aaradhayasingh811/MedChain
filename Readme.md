@@ -166,3 +166,9 @@ medchain/
 ##  6. Conclusion
 
 MedChain presents a robust and scalable model for a patient-centric healthcare data management system. By integrating blockchain technology with established standards like FHIR, it provides a secure, transparent, and interoperable solution that addresses the fundamental flaws of existing EHR systems. It empowers patients with true data ownership, fosters trust between stakeholders, and paves the way for a more efficient and equitable healthcare future.
+
+-----
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
