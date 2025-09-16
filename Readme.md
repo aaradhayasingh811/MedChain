@@ -101,7 +101,7 @@ The MedChain platform is built on a hybrid architecture that combines the streng
 ##### Architecture Diagram
 
 <p align="center">
-  <img src="/image/architecture.png" alt="MedChain Architecture" width="600"/>
+  <img src="./images/architecture.png" alt="MedChain Architecture" width="600"/>
 </p>
 
 ---
