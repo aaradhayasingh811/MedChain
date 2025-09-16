@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="image/logo.png" alt="MedChain Logo" width="140"/>
+  <img src="/images/logo.png" alt="MedChain Logo" width="140"/>
 </p>
 
 #  MedChain: A Decentralized Health Data Management Platform
@@ -101,7 +101,7 @@ The MedChain platform is built on a hybrid architecture that combines the streng
 ##### Architecture Diagram
 
 <p align="center">
-  <img src="image/architecture.png" alt="MedChain Architecture" width="600"/>
+  <img src="/image/architecture.png" alt="MedChain Architecture" width="600"/>
 </p>
 
 ---
