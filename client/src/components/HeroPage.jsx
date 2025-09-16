@@ -374,11 +374,11 @@ const HeroPage = () => {
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-indigo-900/30 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-white mb-1">2018</div>
+                  <div className="text-2xl font-bold text-white mb-1">2025</div>
                   <div className="text-xs text-indigo-300">Founded</div>
                 </div>
                 <div className="bg-indigo-900/30 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-white mb-1">50+</div>
+                  <div className="text-2xl font-bold text-white mb-1">3</div>
                   <div className="text-xs text-indigo-300">Team Members</div>
                 </div>
               </div>
