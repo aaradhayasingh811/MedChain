@@ -1,5 +1,9 @@
 
-# 🏥 MedChain: A Decentralized Health Data Management Platform
+<p align="center">
+  <img src="image/logo.png" alt="MedChain Logo" width="140"/>
+</p>
+
+#  MedChain: A Decentralized Health Data Management Platform
 
 **Secure, patient-centric healthcare records powered by Blockchain, IPFS, and Zero-Knowledge Proofs.**
 
@@ -93,6 +97,15 @@ The MedChain platform is built on a hybrid architecture that combines the streng
 -----
 
 ## 🏛️ 3. System Design
+
+##### Architecture Diagram
+
+<p align="center">
+  <img src="image/architecture.png" alt="MedChain Architecture" width="600"/>
+</p>
+
+---
+
 
 The platform consists of several core components working in synergy:
 
