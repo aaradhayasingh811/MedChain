@@ -57,7 +57,9 @@ import LoginPage from "./components/LoginPage";
 import RegisterPage from "./components/RegisterPage";
 import Dashboard from "./components/Dashboard";
 import ConnectWallet from "./components/ConnectWallet";
+import ViewMyRecords from "./components/ViewMyRecords";
 import "./App.css";
+import ViewAccessedRecords from "./components/ViewAccessedRecords";
 
 function AppWrapper() {
   const location = useLocation();
@@ -111,6 +113,14 @@ function AppWrapper() {
         <Route 
           path="/research" 
           element={user?.role === "researcher" ? <ResearchPortal user={user} /> : <Navigate to="/dashboard" />} 
+        />
+        <Route
+        path="/my-record"
+        element={user?.role === "patient" ? <ViewMyRecords user={user} /> : <Navigate to="/dashboard" />}
+        />
+        <Route
+        path="/my-access-record"
+        element={user?.role === "doctor" ? <ViewAccessedRecords user={user} /> : <Navigate to="/dashboard" />}
         />
       </Routes>
     </>
