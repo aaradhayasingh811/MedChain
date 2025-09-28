@@ -20,6 +20,7 @@ exports.register = async (req, res) => {
       role,
       licenseNumber = "",
       organization = "",
+      walletAddress
     } = req.body;
 
     const existing = await User.findOne({ email });
@@ -32,6 +33,7 @@ exports.register = async (req, res) => {
       role,
       licenseNumber,
       organization,
+      walletAddress
     });
 
     const token = generateToken(user);

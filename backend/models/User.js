@@ -32,6 +32,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    walletAddress :{
+      type : String
+    },
 
     // Forgot Password Fields
     resetOTP: {

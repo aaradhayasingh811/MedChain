@@ -53,6 +53,8 @@ const Navbar = ({ user, setUser, walletAddress }) => {
 
   const setWalletAddress = (address) => {
     console.log("Wallet connected:", address);
+    // set to make avialble in fully project
+    
   }
 
   return (

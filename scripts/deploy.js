@@ -1,26 +1,39 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploying with account:", deployer.address);
+  const [deployer] = await hre.ethers.getSigners();
+  console.log("Deploying contracts with account:", deployer.address);
 
-  // Deploy AccessControl
-  const AccessControl = await ethers.getContractFactory("MedicalAccessControl");
-  const accessControl = await AccessControl.deploy(deployer.address);
-  await accessControl.waitForDeployment();
-  console.log("AccessControl deployed at:", accessControl.target);
-
-  // Deploy HealthRecord
-  const HealthRecord = await ethers.getContractFactory("HealthRecord");
-  const healthRecord = await HealthRecord.deploy(deployer.address);
-  await healthRecord.waitForDeployment();
-  console.log("HealthRecord deployed at:", healthRecord.target);
-
-  // Deploy ResearchToken
-  const ResearchToken = await ethers.getContractFactory("ResearchToken");
+  // 1️⃣ Deploy Research Token
+  const ResearchToken = await hre.ethers.getContractFactory("ResearchAccessToken");
   const researchToken = await ResearchToken.deploy();
-  await researchToken.waitForDeployment();
-  console.log("ResearchToken deployed at:", researchToken.target);
+  await researchToken.deployed();
+  console.log("ResearchToken deployed to:", researchToken.address);
+
+  // 2️⃣ Deploy Roles contract
+  const Roles = await hre.ethers.getContractFactory("Roles");
+  const roles = await Roles.deploy();
+  await roles.deployed();
+  console.log("Roles deployed to:", roles.address);
+
+  // 3️⃣ Deploy MedicalRecordsStorage with Roles already deployed
+  const MedicalRecordsStorage = await hre.ethers.getContractFactory("MedicalRecordsStorage");
+  const medicalRecordsStorage = await MedicalRecordsStorage.deploy();
+  await medicalRecordsStorage.deployed();
+  console.log("MedicalRecordsStorage deployed to:", medicalRecordsStorage.address);
+
+  // 4️⃣ Deploy AccessRequests with MedicalRecordsStorage inherited
+  const AccessRequests = await hre.ethers.getContractFactory("AccessRequests");
+  const accessRequests = await AccessRequests.deploy();
+  await accessRequests.deployed();
+  console.log("AccessRequests deployed to:", accessRequests.address);
+
+  // 5️⃣ Set Research Token (ensure deployer has admin role in MedicalRecordsStorage)
+  const tx = await medicalRecordsStorage.setResearchToken(researchToken.address);
+  await tx.wait();
+  console.log("Research token set in MedicalRecordsStorage:", researchToken.address);
+
+  console.log("✅ Deployment finished successfully!");
 }
 
 main().catch((error) => {

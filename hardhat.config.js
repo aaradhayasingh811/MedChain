@@ -1,33 +1,17 @@
-// import "@nomicfoundation/hardhat-ethers";
 
-// export default {
-//   solidity: "0.8.20",
-//   networks: {
-//     hardhat: {}
-//   }
-// };
 
-import "@nomicfoundation/hardhat-toolbox";
-import "dotenv/config";
-
-/** @type import('hardhat/config').HardhatUserConfig */
-export default {
-  defaultNetwork: "hardhat",
+// require("@nomicfoundation/hardhat-toolbox");
+require("@nomiclabs/hardhat-ethers");
+module.exports = {
+  solidity: "0.8.19",
   networks: {
-    hardhat: {},
-
-    ganache: { // Local Ethereum blockchain
-      url: "http://127.0.0.1:8745",
-      accounts: process.env.GANACHE_PRIVATE_KEYS
-        ? process.env.GANACHE_PRIVATE_KEYS.split(",")
-        : [], // comma-separated private keys from Ganache
+    hardhat: {
+      chainId: 31337, // default Hardhat local chain
     },
-  },
+    ganache: {
+      url: "http://127.0.0.1:8745", // Ganache RPC URL
+            accounts: ["fdf3ce55f624b70ce7e889b46f947e05c34d719aae6e740bad9fa69b5361ce6c"]
 
-  solidity: {
-    version: "0.8.20",
-    settings: {
-      optimizer: { enabled: true, runs: 200 },
     },
   },
 };
