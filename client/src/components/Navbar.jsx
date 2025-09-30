@@ -35,10 +35,15 @@ const Navbar = ({ user, setUser, walletAddress }) => {
       return [
         { to: "/dashboard", label: "Dashboard" },
         { to: "/upload", label: "Upload" },
-        { to: "/grant", label: "Consent" }
+        { to: "/grant", label: "Consent" },
+        { to: "/my-record", label: "Records" }
       ];
     case "doctor":
-      return baseItems;
+      return [
+    { to: "/dashboard", label: "Dashboard" },
+    { to: "/my-access-record", label: "View Records" },
+    { to: "/access", label: "Request Access" }
+  ];
     case "emergency":
       return [...baseItems, { to: "/emergency", label: "Emergency" }];
     case "researcher":

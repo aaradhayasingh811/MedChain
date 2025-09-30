@@ -1,845 +1,512 @@
-// import { ethers } from "ethers";
-// import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from "../config/contracts";
+// // src/config/contractService.js
+// import { ethers } from 'ethers';
+// import MedicalRecordsABI from './MedicalRecordsABI.json';
 
 // class ContractService {
 //   constructor() {
 //     this.provider = null;
 //     this.signer = null;
-//     this.contracts = {};
+//     this.contract = null;
+//     this.isInitialized = false;
+    
+//     // Contract ABI - you'll need to generate this after compilation
+//     this.contractABI = MedicalRecordsABI;
+    
+//     // Contract address - update this after deployment
+//     this.contractAddress = "0x8d319688d7ABd50741694c9afBE35D15e073f018";
+    
+//     // Role constants
+//     this.ROLES = {
+//       PATIENT: "patient",
+//       DOCTOR: "doctor", 
+//       RESEARCHER: "researcher",
+//       EMERGENCY: "emergency"
+//     };
 //   }
 
 //   async init() {
-//     if (this.provider && this.signer) return;
+//     if (this.isInitialized) return;
 
 //     if (window.ethereum) {
-//       this.provider = new ethers.BrowserProvider(window.ethereum);
-//       this.signer = await this.provider.getSigner();
-//       this.initializeContracts();
+//       try {
+//         // Request account access
+//         await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+//         this.provider = new ethers.providers.Web3Provider(window.ethereum);
+//         this.signer = this.provider.getSigner();
+        
+//         // Initialize contract
+//         this.contract = new ethers.Contract(
+//           this.contractAddress,
+//           this.contractABI,
+//           this.signer
+//         );
+
+//         this.isInitialized = true;
+//         console.log("Contract service initialized successfully");
+//       } catch (error) {
+//         console.error("Error initializing contract service:", error);
+//         throw error;
+//       }
 //     } else {
 //       throw new Error("MetaMask not installed");
 //     }
 //   }
 
-//   initializeContracts() {
-//     const signer = this.signer;
-
-//     // MedicalRecordsStorage contains both medical records and access request functionality
-//     this.contracts.medicalRecords = new ethers.Contract(
-//       CONTRACT_ADDRESSES.medicalRecordsStorage,
-//       CONTRACT_ABIS.MedicalRecords,
-//       signer
-//     );
-
-//     // AccessRequests contract (though most functionality is in MedicalRecordsStorage)
-//     this.contracts.accessRequests = new ethers.Contract(
-//       CONTRACT_ADDRESSES.accessRequests,
-//       CONTRACT_ABIS.AccessRequests,
-//       signer
-//     );
-
-//     this.contracts.researchToken = new ethers.Contract(
-//       CONTRACT_ADDRESSES.researchToken,
-//       CONTRACT_ABIS.ResearchAccessToken,
-//       signer
-//     );
-
-//     this.contracts.roles = new ethers.Contract(
-//       CONTRACT_ADDRESSES.roles,
-//       CONTRACT_ABIS.Roles,
-//       signer
-//     );
-//   }
-
-//   // ================= MEDICAL RECORDS =================
-//   // async addMedicalRecord(ipfsHash, fileType, fileSize, description) {
-//   //   const tx = await this.contracts.medicalRecords.addMedicalRecord(
-//   //     ipfsHash,
-//   //     fileType,
-//   //     fileSize,
-//   //     description
-//   //   );
-//   //   return await tx.wait();
-//   // }
-
-
-//   async addMedicalRecord(ipfsHash, fileType, fileSize, description) {
-//   try {
-//     if (!this.contracts.medicalRecords) {
-//       throw new Error("ContractService not initialized. Call init() first.");
-//     }
-
-//     // Ensure all fields are valid
-//     if (!ipfsHash || !fileType || !fileSize) {
-//       throw new Error("Missing required parameters for medical record");
-//     }
-
-//     const safeDescription = (description || "Medical Record").slice(0, 200);
-//     const sizeBN = BigInt(fileSize); // uint256 in Solidity
-//     fileSize = Number(fileSize);
-    
-
-  
-//     const tx = await this.contracts.medicalRecords.addMedicalRecord(
-//       ipfsHash,
-//       fileType,
-//       BigInt(fileSize),
-//       safeDescription,
-//     );
-//     return await tx.wait();
-//   } catch (error) {
-//     console.error("addMedicalRecord failed:", error);
-
-//     // Better error handling for revert
-//     let msg = error?.reason || error?.data?.message || error.message || error;
-//     throw new Error(`Blockchain call failed: ${msg}`);
-//   }
-// }
-
-  
-
-//   async getMyRecords() {
-//     return await this.contracts.medicalRecords.getMyRecords();
-//   }
-
-//   async getPatientRecords(patientAddress) {
-//     // Note: This function might not exist in your actual contract
-//     // Check if it exists before calling
-//     try {
-//       return await this.contracts.medicalRecords.getPatientRecords(patientAddress);
-//     } catch (error) {
-//       console.error("getPatientRecords not available:", error);
-//       return [];
-//     }
-//   }
-
-//   // ================= CONSENT MANAGEMENT =================
-//   async grantConsent(granteeAddress, duration, accessLevel) {
-//     const tx = await this.contracts.medicalRecords.grantConsent(
-//       granteeAddress,
-//       duration,
-//       accessLevel
-//     );
-//     return await tx.wait();
-//   }
-
-//   async revokeConsent(granteeAddress) {
-//     const tx = await this.contracts.medicalRecords.revokeConsent(granteeAddress);
-//     return await tx.wait();
-//   }
-
-//   async getConsentStatus(patient, grantee) {
-//     try {
-//       return await this.contracts.medicalRecords.consents(patient, grantee);
-//     } catch (error) {
-//       console.error("Error getting consent status:", error);
-//       return null;
-//     }
-//   }
-
-//   // ================= ACCESS REQUESTS =================
-//   async requestAccess(patientAddress, purpose, duration, accessLevel) {
-//     const tx = await this.contracts.accessRequests.requestAccess(
-//       patientAddress,
-//       purpose,
-//       duration,
-//       accessLevel
-//     );
-//     return await tx.wait();
-//   }
-
-//   async approveAccess(requestId) {
-//     // Note: approveAccess might not exist in your contract
-//     // Using the available function from the ABI
-//     try {
-//       const tx = await this.contracts.medicalRecords.approveAccess(requestId);
-//       return await tx.wait();
-//     } catch (error) {
-//       console.error("approveAccess not available:", error);
-//       throw error;
-//     }
-//   }
-
-//   async rejectAccess(requestId) {
-//     try {
-//       const tx = await this.contracts.medicalRecords.rejectAccess(requestId);
-//       return await tx.wait();
-//     } catch (error) {
-//       console.error("rejectAccess not available:", error);
-//       throw error;
-//     }
-//   }
-
-//   async getMyAccessRequests() {
-//     try {
-//       return await this.contracts.medicalRecords.getMyAccessRequests();
-//     } catch (error) {
-//       console.error("getMyAccessRequests not available:", error);
-//       return [];
-//     }
-//   }
-
-//   async getAccessRequest(requestId) {
-//     try {
-//       return await this.contracts.accessRequests.accessRequests(requestId);
-//     } catch (error) {
-//       console.error("getAccessRequest not available:", error);
-//       return null;
-//     }
-//   }
-
-//   // ================= ROLE MANAGEMENT (SELF-REGISTER) =================
-// async registerAsPatient() {
-//   const tx = await this.contracts.roles.registerAsPatient();
-//   return await tx.wait();
-// }
-
-// async registerAsDoctor() {
-//   const tx = await this.contracts.roles.registerAsDoctor();
-//   return await tx.wait();
-// }
-
-// async registerAsResearcher() {
-//   const tx = await this.contracts.roles.registerAsResearcher();
-//   return await tx.wait();
-// }
-
-// async registerAsEmergencyResponder() {
-//   const tx = await this.contracts.roles.registerAsEmergencyResponder();
-//   return await tx.wait();
-// }
-
-//   // ================= RESEARCH TOKENS =================
-//   async mintResearchToken(to, researchPurpose) {
-//     const tx = await this.contracts.researchToken.mintResearchToken(to, researchPurpose);
-//     return await tx.wait();
-//   }
-
-//   async getTokenPurpose(tokenId) {
-//     return await this.contracts.researchToken.getTokenPurpose(tokenId);
-//   }
-
-//   async isApprovedResearcher(researcher) {
-//     return await this.contracts.researchToken.isApprovedResearcher(researcher);
-//   }
-
-//   // ================= UTILITY FUNCTIONS =================
-//   async hasResearchAccess(user) {
-//     return await this.contracts.medicalRecords.hasResearchAccess(user);
-//   }
-
-//   async setResearchToken(tokenAddress) {
-//     const tx = await this.contracts.medicalRecords.setResearchToken(tokenAddress);
-//     return await tx.wait();
-//   }
-
-//   // ================= ROLE CHECKING =================
-//   async hasRole(role, account) {
-//     return await this.contracts.roles.hasRole(role, account);
-//   }
-
-//   async getRoleAdmin(role) {
-//     return await this.contracts.roles.getRoleAdmin(role);
-//   }
-
-//   // Constants for role hashes
-//   get ROLES() {
-//     return {
-//       PATIENT: ethers.keccak256(ethers.toUtf8Bytes("PATIENT_ROLE")),
-//       DOCTOR: ethers.keccak256(ethers.toUtf8Bytes("DOCTOR_ROLE")),
-//       RESEARCHER: ethers.keccak256(ethers.toUtf8Bytes("RESEARCHER_ROLE")),
-//       EMERGENCY: ethers.keccak256(ethers.toUtf8Bytes("EMERGENCY_ROLE")),
-//       ADMIN: ethers.keccak256(ethers.toUtf8Bytes("DEFAULT_ADMIN_ROLE"))
-//     };
-//   }
-
-//   // ================= EVENT LISTENERS =================
-//   onRecordAdded(callback) {
-//     this.contracts.medicalRecords.on("RecordAdded", callback);
-//   }
-
-//   onConsentGranted(callback) {
-//     this.contracts.medicalRecords.on("ConsentGranted", callback);
-//   }
-
-//   onConsentRevoked(callback) {
-//     this.contracts.medicalRecords.on("ConsentRevoked", callback);
-//   }
-
-//   // Remove all listeners
-//   removeAllListeners() {
-//     this.contracts.medicalRecords.removeAllListeners();
-//     this.contracts.accessRequests.removeAllListeners();
-//     this.contracts.researchToken.removeAllListeners();
-//     this.contracts.roles.removeAllListeners();
-//   }
-// }
-
-// export default new ContractService();
-
-// 2nd
-
-// import { ethers } from "ethers";
-// import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from "../config/contracts";
-
-// class ContractService {
-//   constructor() {
-//     this.provider = null;
-//     this.signer = null;
-//     this.contracts = {};
-//   }
-
-//   // ================= INIT =================
-//   async init() {
-//     if (this.provider && this.signer) return;
-
-//     if (!window.ethereum) throw new Error("MetaMask not installed");
-
-//     this.provider = new ethers.BrowserProvider(window.ethereum);
-//     this.signer = await this.provider.getSigner();
-//     await this.initializeContracts();
-//   }
-
-//   async initializeContracts() {
-//     const signer = this.signer;
-
-//     this.contracts.medicalRecords = new ethers.Contract(
-//       CONTRACT_ADDRESSES.medicalRecordsStorage,
-//       CONTRACT_ABIS.MedicalRecords,
-//       signer
-//     );
-
-//     this.contracts.accessRequests = new ethers.Contract(
-//       CONTRACT_ADDRESSES.accessRequests,
-//       CONTRACT_ABIS.AccessRequests,
-//       signer
-//     );
-
-//     this.contracts.researchToken = new ethers.Contract(
-//       CONTRACT_ADDRESSES.researchToken,
-//       CONTRACT_ABIS.ResearchAccessToken,
-//       signer
-//     );
-
-//     this.contracts.roles = new ethers.Contract(
-//       CONTRACT_ADDRESSES.roles,
-//       CONTRACT_ABIS.Roles,
-//       signer
-//     );
-//   }
-
-//   // ================= ROLE HASHES =================
-//   get ROLES() {
-//     return {
-//       PATIENT: ethers.keccak256(ethers.toUtf8Bytes("PATIENT_ROLE")),
-//       DOCTOR: ethers.keccak256(ethers.toUtf8Bytes("DOCTOR_ROLE")),
-//       RESEARCHER: ethers.keccak256(ethers.toUtf8Bytes("RESEARCHER_ROLE")),
-//       EMERGENCY: ethers.keccak256(ethers.toUtf8Bytes("EMERGENCY_ROLE")),
-//       ADMIN: ethers.keccak256(ethers.toUtf8Bytes("DEFAULT_ADMIN_ROLE")),
-//     };
-//   }
-
-//   async hasRole(role, account) {
-//     return await this.contracts.roles.hasRole(role, account);
-//   }
-
-//   // ================= MEDICAL RECORDS =================
-//   async addMedicalRecord(ipfsHash, fileType, fileSize, description) {
-//     const account = await this.signer.getAddress();
-//     const isPatient = await this.hasRole(this.ROLES.PATIENT, account);
-//     if (!isPatient) throw new Error("Account is not a registered PATIENT");
-
-//     const safeDescription = (description || "Medical Record").slice(0, 200);
-//     const tx = await this.contracts.medicalRecords.addMedicalRecord(
-//       ipfsHash,
-//       fileType,
-//       BigInt(fileSize),
-//       safeDescription
-//     );
-//     return await tx.wait();
-//   }
-
-//   async getMyRecords() {
-//     return await this.contracts.medicalRecords.getMyRecords();
-//   }
-
-//   async getPatientRecords(patientAddress) {
-//     try {
-//       return await this.contracts.medicalRecords.getPatientRecords(patientAddress);
-//     } catch (err) {
-//       console.error("getPatientRecords failed:", err);
-//       return [];
-//     }
-//   }
-
-//   // ================= CONSENT MANAGEMENT =================
-//   async grantConsent(granteeAddress, duration, accessLevel) {
-//     const account = await this.signer.getAddress();
-//     const isPatient = await this.hasRole(this.ROLES.PATIENT, account);
-//     if (!isPatient) throw new Error("Account is not a registered PATIENT");
-
-//     const tx = await this.contracts.medicalRecords.grantConsent(granteeAddress, duration, accessLevel);
-//     return await tx.wait();
-//   }
-
-//   async revokeConsent(granteeAddress) {
-//     const account = await this.signer.getAddress();
-//     const isPatient = await this.hasRole(this.ROLES.PATIENT, account);
-//     if (!isPatient) throw new Error("Account is not a registered PATIENT");
-
-//     const tx = await this.contracts.medicalRecords.revokeConsent(granteeAddress);
-//     return await tx.wait();
-//   }
-
-//   async getConsentStatus(patient, grantee) {
-//     try {
-//       return await this.contracts.medicalRecords.consents(patient, grantee);
-//     } catch (err) {
-//       console.error("getConsentStatus failed:", err);
-//       return null;
-//     }
-//   }
-
-//   // ================= ACCESS REQUESTS =================
-//   async requestAccess(patientAddress, purpose, duration, accessLevel) {
-//     const account = await this.signer.getAddress();
-//     const isDoctorOrResearcher =
-//       (await this.hasRole(this.ROLES.DOCTOR, account)) ||
-//       (await this.hasRole(this.ROLES.RESEARCHER, account));
-
-//     if (!isDoctorOrResearcher) throw new Error("Account is not authorized to request access");
-
-//     const tx = await this.contracts.accessRequests.requestAccess(patientAddress, purpose, duration, accessLevel);
-//     return await tx.wait();
-//   }
-
-//   async approveAccess(requestId) {
-//     const tx = await this.contracts.accessRequests.approveAccess(requestId);
-//     return await tx.wait();
-//   }
-
-//   async rejectAccess(requestId) {
-//     const tx = await this.contracts.accessRequests.rejectAccess(requestId);
-//     return await tx.wait();
-//   }
-
-//   async getMyAccessRequests() {
-//     try {
-//       return await this.contracts.medicalRecords.getMyAccessRequests();
-//     } catch (err) {
-//       console.error("getMyAccessRequests failed:", err);
-//       return [];
-//     }
-//   }
-
-//   async getAccessRequest(requestId) {
-//     try {
-//       return await this.contracts.accessRequests.accessRequests(requestId);
-//     } catch (err) {
-//       console.error("getAccessRequest failed:", err);
-//       return null;
-//     }
-//   }
-
-//   // ================= ROLE SELF-REGISTRATION =================
+//   // Role registration
 //   async registerAsPatient() {
-//     const tx = await this.contracts.roles.registerAsPatient();
-//     return await tx.wait();
+//     await this.init();
+//     return await this.contract.registerAsPatient();
 //   }
 
 //   async registerAsDoctor() {
-//     const tx = await this.contracts.roles.registerAsDoctor();
-//     return await tx.wait();
+//     await this.init();
+//     return await this.contract.registerAsDoctor();
 //   }
 
 //   async registerAsResearcher() {
-//     const tx = await this.contracts.roles.registerAsResearcher();
-//     return await tx.wait();
+//     await this.init();
+//     return await this.contract.registerAsResearcher();
 //   }
 
 //   async registerAsEmergencyResponder() {
-//     const tx = await this.contracts.roles.registerAsEmergencyResponder();
-//     return await tx.wait();
+//     await this.init();
+//     return await this.contract.registerAsEmergencyResponder();
 //   }
 
-//   // ================= RESEARCH TOKEN =================
-//   async mintResearchToken(to, researchPurpose) {
-//     const account = await this.signer.getAddress();
-//     const isAdmin = await this.hasRole(this.ROLES.ADMIN, account);
-//     if (!isAdmin) throw new Error("Only ADMIN can mint research tokens");
-
-//     const tx = await this.contracts.researchToken.mintResearchToken(to, researchPurpose);
-//     return await tx.wait();
+//   // Medical records
+//   async addMedicalRecord(ipfsHash, fileType, fileSize, description) {
+//     await this.init();
+//     return await this.contract.addMedicalRecord(ipfsHash, fileType, fileSize, description);
 //   }
 
-//   async getTokenPurpose(tokenId) {
-//     return await this.contracts.researchToken.getTokenPurpose(tokenId);
+//   async getMyRecords() {
+//     await this.init();
+//     return await this.contract.getMyRecords();
 //   }
 
-//   async isApprovedResearcher(researcher) {
-//     return await this.contracts.researchToken.isApprovedResearcher(researcher);
+//   async getPatientRecords(patientAddress) {
+//     await this.init();
+//     return await this.contract.getPatientRecords(patientAddress);
 //   }
 
-//   async hasResearchAccess(user) {
-//     return await this.contracts.medicalRecords.hasResearchAccess(user);
+//   // Access requests
+//   async requestAccess(patientAddress, purpose, duration, accessLevel) {
+//     await this.init();
+//     return await this.contract.requestAccess(patientAddress, purpose, duration, accessLevel);
 //   }
 
-//   async setResearchToken(tokenAddress) {
-//     const account = await this.signer.getAddress();
-//     const isAdmin = await this.hasRole(this.ROLES.ADMIN, account);
-//     if (!isAdmin) throw new Error("Only ADMIN can set research token");
-
-//     const tx = await this.contracts.medicalRecords.setResearchToken(tokenAddress);
-//     return await tx.wait();
+//   async approveAccess(requestId) {
+//     await this.init();
+//     return await this.contract.approveAccess(requestId);
 //   }
 
-//   // ================= EVENTS =================
+//   async rejectAccess(requestId) {
+//     await this.init();
+//     return await this.contract.rejectAccess(requestId);
+//   }
+
+//   async getMyAccessRequests() {
+//     await this.init();
+//     return await this.contract.getMyAccessRequests();
+//   }
+
+//   async getPatientAccessRequests() {
+//     await this.init();
+//     return await this.contract.getPatientAccessRequests();
+//   }
+
+//   // Consent management
+//   async grantConsent(granteeAddress, duration, accessLevel) {
+//     await this.init();
+//     return await this.contract.grantConsent(granteeAddress, duration, accessLevel);
+//   }
+
+//   async revokeConsent(granteeAddress) {
+//     await this.init();
+//     return await this.contract.revokeConsent(granteeAddress);
+//   }
+
+//   // Utility functions
+//   async hasAccess(patientAddress, requesterAddress) {
+//     await this.init();
+//     return await this.contract.hasAccess(patientAddress, requesterAddress);
+//   }
+
+//   async getRole(userAddress) {
+//     await this.init();
+//     return await this.contract.getRole(userAddress);
+//   }
+
+//   async getCurrentAddress() {
+//     await this.init();
+//     return await this.signer.getAddress();
+//   }
+
+//   // Event listeners
 //   onRecordAdded(callback) {
-//     this.contracts.medicalRecords.on("RecordAdded", callback);
+//     this.contract.on('MedicalRecordAdded', callback);
+//   }
+
+//   onAccessRequested(callback) {
+//     this.contract.on('AccessRequested', callback);
+//   }
+
+//   onAccessApproved(callback) {
+//     this.contract.on('AccessApproved', callback);
 //   }
 
 //   onConsentGranted(callback) {
-//     this.contracts.medicalRecords.on("ConsentGranted", callback);
-//   }
-
-//   onConsentRevoked(callback) {
-//     this.contracts.medicalRecords.on("ConsentRevoked", callback);
+//     this.contract.on('ConsentGranted', callback);
 //   }
 
 //   removeAllListeners() {
-//     this.contracts.medicalRecords.removeAllListeners();
-//     this.contracts.accessRequests.removeAllListeners();
-//     this.contracts.researchToken.removeAllListeners();
-//     this.contracts.roles.removeAllListeners();
+//     this.contract.removeAllListeners();
 //   }
 // }
 
 // export default new ContractService();
 
+// src/config/contractService.js
+import { BrowserProvider, Contract } from "ethers";
 
-// 3rd
-import { ethers } from "ethers";
-import { CONTRACT_ADDRESSES, CONTRACT_ABIS } from "../config/contracts";
+// ABI for the MedicalRecords contract
+const MedicalRecordsABI = [
+  "function registerAsPatient() external",
+  "function registerAsDoctor() external",
+  "function registerAsResearcher() external",
+  "function registerAsEmergencyResponder() external",
+  "function addMedicalRecord(string memory _ipfsHash, string memory _fileType, uint256 _fileSize, string memory _description) external",
+  "function getMyRecords() external view returns (tuple(string ipfsHash, string fileType, uint256 fileSize, string description, uint256 timestamp, address uploadedBy)[])",
+  "function getPatientRecords(address _patient) external view returns (tuple(string ipfsHash, string fileType, uint256 fileSize, string description, uint256 timestamp, address uploadedBy)[])",
+  "function requestAccess(address _patient, string memory _purpose, uint256 _duration, uint8 _accessLevel) external",
+  "function approveAccess(uint256 _requestId) external",
+  "function rejectAccess(uint256 _requestId) external",
+  "function getMyAccessRequests() external view returns (tuple(address patient, address requester, string purpose, uint256 duration, uint8 accessLevel, uint256 timestamp, bool approved, bool rejected)[])",
+  "function getPatientAccessRequests() external view returns (tuple(address patient, address requester, string purpose, uint256 duration, uint8 accessLevel, uint256 timestamp, bool approved, bool rejected)[])",
+  "function grantConsent(address _grantee, uint256 _duration, uint8 _accessLevel) external",
+  "function revokeConsent(address _grantee) external",
+  "function hasAccess(address _patient, address _requester) external view returns (bool)",
+  "function getRole(address _user) external view returns (string memory)",
+  "function patients(address) external view returns (bool)",
+  "function doctors(address) external view returns (bool)",
+  "function researchers(address) external view returns (bool)",
+  "function emergencyResponders(address) external view returns (bool)",
+  "event PatientRegistered(address indexed patient)",
+  "event DoctorRegistered(address indexed doctor)",
+  "event ResearcherRegistered(address indexed researcher)",
+  "event EmergencyResponderRegistered(address indexed responder)",
+  "event MedicalRecordAdded(address indexed patient, uint256 recordId, string ipfsHash)",
+  "event AccessRequested(address indexed patient, address indexed requester, uint256 requestId, string purpose)",
+  "event AccessApproved(address indexed patient, address indexed requester, uint256 requestId)",
+  "event AccessRejected(address indexed patient, address indexed requester, uint256 requestId)",
+  "event ConsentGranted(address indexed patient, address indexed grantee, uint256 duration, uint8 accessLevel)",
+  "event ConsentRevoked(address indexed patient, address indexed grantee)"
+];
 
 class ContractService {
   constructor() {
     this.provider = null;
     this.signer = null;
-    this.contracts = {};
-    this.initialized = false;
-  }
-
-  // ================= INIT =================
-  async init() {
-    if (this.initialized) return;
-
-    if (!window.ethereum) throw new Error("MetaMask not installed");
-
-    this.provider = new ethers.BrowserProvider(window.ethereum);
-    this.signer = await this.provider.getSigner();
-    await this.initializeContracts();
-    this.initialized = true;
-  }
-
-  async initializeContracts() {
-    const signer = this.signer;
-
-    try {
-      this.contracts.medicalRecords = new ethers.Contract(
-        CONTRACT_ADDRESSES.medicalRecordsStorage,
-        CONTRACT_ABIS.MedicalRecords,
-        signer
-      );
-
-      this.contracts.accessRequests = new ethers.Contract(
-        CONTRACT_ADDRESSES.accessRequests,
-        CONTRACT_ABIS.AccessRequests,
-        signer
-      );
-
-      this.contracts.researchToken = new ethers.Contract(
-        CONTRACT_ADDRESSES.researchToken,
-        CONTRACT_ABIS.ResearchAccessToken,
-        signer
-      );
-
-      this.contracts.roles = new ethers.Contract(
-        CONTRACT_ADDRESSES.roles,
-        CONTRACT_ABIS.Roles,
-        signer
-      );
-    } catch (error) {
-      console.error("Error initializing contracts:", error);
-      throw error;
-    }
-  }
-
-  // ================= ROLE HASHES =================
-  get ROLES() {
-    return {
-      PATIENT: ethers.keccak256(ethers.toUtf8Bytes("PATIENT_ROLE")),
-      DOCTOR: ethers.keccak256(ethers.toUtf8Bytes("DOCTOR_ROLE")),
-      RESEARCHER: ethers.keccak256(ethers.toUtf8Bytes("RESEARCHER_ROLE")),
-      EMERGENCY: ethers.keccak256(ethers.toUtf8Bytes("EMERGENCY_ROLE")),
-      ADMIN: ethers.keccak256(ethers.toUtf8Bytes("DEFAULT_ADMIN_ROLE")),
+    this.contract = null;
+    this.isInitialized = false;
+    
+    this.contractABI = MedicalRecordsABI;
+    this.contractAddress = "0x8d319688d7ABd50741694c9afBE35D15e073f018"; 
+    
+    this.ROLES = {
+      PATIENT: "patient",
+      DOCTOR: "doctor", 
+      RESEARCHER: "researcher",
+      EMERGENCY: "emergency"
     };
   }
 
-  async hasRole(role, account) {
-    if (!account || account === "") {
-      throw new Error("Invalid account address");
+  // async init() {
+  //   if (this.isInitialized && this.contract) return;
+
+  //   if (window.ethereum) {
+  //     try {
+  //       await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+  //       this.provider = new ethers.providers.Web3Provider(window.ethereum);
+  //       this.signer = this.provider.getSigner();
+        
+  //       this.contract = new ethers.Contract(
+  //         this.contractAddress,
+  //         this.contractABI,
+  //         this.signer
+  //       );
+
+  //       this.isInitialized = true;
+  //       console.log("Contract service initialized successfully");
+  //     } catch (error) {
+  //       console.error("Error initializing contract service:", error);
+  //       throw error;
+  //     }
+  //   } else {
+  //     throw new Error("MetaMask not installed");
+  //   }
+  // }
+
+  // Role registration
+  
+  async init() {
+  if (this.isInitialized && this.contract) return;
+
+  if (window.ethereum) {
+    try {
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+      this.provider = new BrowserProvider(window.ethereum);
+      this.signer = await this.provider.getSigner();
+
+      this.contract = new Contract(
+        this.contractAddress,
+        this.contractABI,
+        this.signer
+      );
+
+      this.isInitialized = true;
+      console.log("Contract service initialized successfully");
+    } catch (error) {
+      console.error("Error initializing contract service:", error);
+      throw error;
     }
-    return await this.contracts.roles.hasRole(role, account);
+  } else {
+    throw new Error("MetaMask not installed");
   }
-
-  // ================= MEDICAL RECORDS =================
-  async addMedicalRecord(ipfsHash, fileType, fileSize, description) {
-    try{
-    const account = await this.signer.getAddress();
-    const isPatient = await this.hasRole(this.ROLES.PATIENT, account);
-    console.log({ account, isPatient });
-
-    if (!isPatient) throw new Error("Account is not a registered PATIENT");
-    console.log("he is patient")
-
-    const safeDescription = (description || "Medical Record").slice(0, 200);
-    console.log("IPFS hash ", typeof(ipfsHash));
-    console.log("FileType  ", typeof(fileType));
-    console.log("FileSize ", typeof(ethers.toBigInt(fileSize)));
-    console.log("safe desc ", typeof(safeDescription));
-    const tx = await this.contracts.medicalRecords.addMedicalRecord(
-      ipfsHash,
-      fileType,
-      // BigInt(fileSize),
-      ethers.toBigInt(fileSize),
-      safeDescription,
-        { gasLimit: 500_000 }
-
-    );
-    return await tx.wait();
-  }
-  catch(err) {
-  console.error("Add medical record failed", err);
 }
+
+  
+  
+  
+  async registerAsPatient() {
+    await this.init();
+    const tx = await this.contract.registerAsPatient();
+    return tx;
+  }
+
+  async registerAsDoctor() {
+    await this.init();
+    const tx = await this.contract.registerAsDoctor();
+    return tx;
+  }
+
+  async registerAsResearcher() {
+    await this.init();
+    const tx = await this.contract.registerAsResearcher();
+    return tx;
+  }
+
+  async registerAsEmergencyResponder() {
+    await this.init();
+    const tx = await this.contract.registerAsEmergencyResponder();
+    return tx;
+  }
+
+  // Check roles
+  async hasRole(role, address) {
+    await this.init();
+    try {
+      switch(role) {
+        case this.ROLES.PATIENT:
+          return await this.contract.patients(address);
+        case this.ROLES.DOCTOR:
+          return await this.contract.doctors(address);
+        case this.ROLES.RESEARCHER:
+          return await this.contract.researchers(address);
+        case this.ROLES.EMERGENCY:
+          return await this.contract.emergencyResponders(address);
+        default:
+          return false;
+      }
+    } catch (error) {
+      console.error("Error checking role:", error);
+      return false;
+    }
+  }
+
+  // Medical records
+  async addMedicalRecord(ipfsHash, fileType, fileSize, description) {
+    await this.init();
+    const tx = await this.contract.addMedicalRecord(ipfsHash, fileType, fileSize, description);
+    return tx;
   }
 
   async getMyRecords() {
+    await this.init();
     try {
-      return await this.contracts.medicalRecords.getMyRecords();
-    } catch (err) {
-      console.error("getMyRecords failed:", err);
+      const records = await this.contract.getMyRecords();
+      return records.map((record, index) => ({
+        recordId: index,
+        ipfsHash: record.ipfsHash,
+        fileType: record.fileType,
+        fileSize: record.fileSize.toString(),
+        description: record.description,
+        timestamp: record.timestamp.toString(),
+        uploadedBy: record.uploadedBy
+      }));
+    } catch (error) {
+      console.error("Error getting records:", error);
       return [];
     }
   }
 
   async getPatientRecords(patientAddress) {
+    await this.init();
     try {
-      if (!patientAddress || patientAddress === "") {
-        throw new Error("Invalid patient address");
-      }
-      return await this.contracts.medicalRecords.getPatientRecords(patientAddress);
-    } catch (err) {
-      console.error("getPatientRecords failed:", err);
+      const records = await this.contract.getPatientRecords(patientAddress);
+      return records.map((record, index) => ({
+        recordId: index,
+        ipfsHash: record.ipfsHash,
+        fileType: record.fileType,
+        fileSize: record.fileSize.toString(),
+        description: record.description,
+        timestamp: record.timestamp.toString(),
+        uploadedBy: record.uploadedBy
+      }));
+    } catch (error) {
+      console.error("Error getting patient records:", error);
       return [];
     }
   }
 
-  // ================= CONSENT MANAGEMENT =================
-  async grantConsent(granteeAddress, duration, accessLevel) {
-    const account = await this.signer.getAddress();
-    const isPatient = await this.hasRole(this.ROLES.PATIENT, account);
-    if (!isPatient) throw new Error("Account is not a registered PATIENT");
-
-    if (!granteeAddress || granteeAddress === "") {
-      throw new Error("Invalid grantee address");
-    }
-
-    const tx = await this.contracts.medicalRecords.grantConsent(granteeAddress, duration, accessLevel);
-    return await tx.wait();
-  }
-
-  async revokeConsent(granteeAddress) {
-    const account = await this.signer.getAddress();
-    const isPatient = await this.hasRole(this.ROLES.PATIENT, account);
-    if (!isPatient) throw new Error("Account is not a registered PATIENT");
-
-    if (!granteeAddress || granteeAddress === "") {
-      throw new Error("Invalid grantee address");
-    }
-
-    const tx = await this.contracts.medicalRecords.revokeConsent(granteeAddress);
-    return await tx.wait();
-  }
-
-  async getConsentStatus(patient, grantee) {
-    try {
-      if (!patient || !grantee || patient === "" || grantee === "") {
-        throw new Error("Invalid addresses");
-      }
-      return await this.contracts.medicalRecords.consents(patient, grantee);
-    } catch (err) {
-      console.error("getConsentStatus failed:", err);
-      return null;
-    }
-  }
-
-  // ================= ACCESS REQUESTS =================
+  // Access requests
   async requestAccess(patientAddress, purpose, duration, accessLevel) {
-    const account = await this.signer.getAddress();
-    const isDoctorOrResearcher =
-      (await this.hasRole(this.ROLES.DOCTOR, account)) ||
-      (await this.hasRole(this.ROLES.RESEARCHER, account));
-
-    if (!isDoctorOrResearcher) throw new Error("Account is not authorized to request access");
-
-    if (!patientAddress || patientAddress === "") {
-      throw new Error("Invalid patient address");
-    }
-
-    const tx = await this.contracts.accessRequests.requestAccess(patientAddress, purpose, duration, accessLevel);
-    return await tx.wait();
+    await this.init();
+    const tx = await this.contract.requestAccess(patientAddress, purpose, duration, accessLevel);
+    return tx;
   }
 
   async approveAccess(requestId) {
-    const tx = await this.contracts.accessRequests.approveAccess(requestId);
-    return await tx.wait();
+    await this.init();
+    const tx = await this.contract.approveAccess(requestId);
+    return tx;
   }
 
   async rejectAccess(requestId) {
-    const tx = await this.contracts.accessRequests.rejectAccess(requestId);
-    return await tx.wait();
+    await this.init();
+    const tx = await this.contract.rejectAccess(requestId);
+    return tx;
   }
 
   async getMyAccessRequests() {
+    await this.init();
     try {
-      // Check which contract has this function
-      if (this.contracts.accessRequests && typeof this.contracts.accessRequests.getMyAccessRequests === 'function') {
-        return await this.contracts.accessRequests.getMyAccessRequests();
-      } else if (this.contracts.medicalRecords && typeof this.contracts.medicalRecords.getMyAccessRequests === 'function') {
-        return await this.contracts.medicalRecords.getMyAccessRequests();
-      } else {
-        console.warn("getMyAccessRequests not available in any contract");
-        return [];
-      }
-    } catch (err) {
-      console.error("getMyAccessRequests failed:", err);
+      const requests = await this.contract.getMyAccessRequests();
+      return requests.map((request, index) => ({
+        requestId: index,
+        patient: request.patient,
+        requester: request.requester,
+        purpose: request.purpose,
+        duration: request.duration.toString(),
+        accessLevel: request.accessLevel,
+        timestamp: request.timestamp.toString(),
+        approved: request.approved,
+        rejected: request.rejected
+      }));
+    } catch (error) {
+      console.error("Error getting access requests:", error);
       return [];
     }
   }
 
-  async getAccessRequest(requestId) {
+  async getPatientAccessRequests() {
+    await this.init();
     try {
-      return await this.contracts.accessRequests.accessRequests(requestId);
-    } catch (err) {
-      console.error("getAccessRequest failed:", err);
-      return null;
+      const requests = await this.contract.getPatientAccessRequests();
+      return requests.map((request, index) => ({
+        requestId: index,
+        patient: request.patient,
+        requester: request.requester,
+        purpose: request.purpose,
+        duration: request.duration.toString(),
+        accessLevel: request.accessLevel,
+        timestamp: request.timestamp.toString(),
+        approved: request.approved,
+        rejected: request.rejected
+      }));
+    } catch (error) {
+      console.error("Error getting patient access requests:", error);
+      return [];
     }
   }
 
-  // ================= ROLE SELF-REGISTRATION =================
-  async registerAsPatient() {
-    const tx = await this.contracts.roles.registerAsPatient();
-    return await tx.wait();
+  // Consent management
+  async grantConsent(granteeAddress, duration, accessLevel) {
+    await this.init();
+    const tx = await this.contract.grantConsent(granteeAddress, duration, accessLevel);
+    return tx;
   }
 
-  async registerAsDoctor() {
-    const tx = await this.contracts.roles.registerAsDoctor();
-    return await tx.wait();
+  async revokeConsent(granteeAddress) {
+    await this.init();
+    const tx = await this.contract.revokeConsent(granteeAddress);
+    return tx;
   }
 
-  async registerAsResearcher() {
-    const tx = await this.contracts.roles.registerAsResearcher();
-    return await tx.wait();
-  }
-
-  async registerAsEmergencyResponder() {
-    const tx = await this.contracts.roles.registerAsEmergencyResponder();
-    return await tx.wait();
-  }
-
-  // ================= RESEARCH TOKEN =================
-  async mintResearchToken(to, researchPurpose) {
-    const account = await this.signer.getAddress();
-    const isAdmin = await this.hasRole(this.ROLES.ADMIN, account);
-    if (!isAdmin) throw new Error("Only ADMIN can mint research tokens");
-
-    const tx = await this.contracts.researchToken.mintResearchToken(to, researchPurpose);
-    return await tx.wait();
-  }
-
-  async getTokenPurpose(tokenId) {
-    return await this.contracts.researchToken.getTokenPurpose(tokenId);
-  }
-
-  async isApprovedResearcher(researcher) {
-    return await this.contracts.researchToken.isApprovedResearcher(researcher);
-  }
-
-  async hasResearchAccess(user) {
+  // Utility functions
+  async hasAccess(patientAddress, requesterAddress) {
+    await this.init();
     try {
-      return await this.contracts.medicalRecords.hasResearchAccess(user);
-    } catch (err) {
-      console.error("hasResearchAccess failed:", err);
+      return await this.contract.hasAccess(patientAddress, requesterAddress);
+    } catch (error) {
+      console.error("Error checking access:", error);
       return false;
     }
   }
 
-  async setResearchToken(tokenAddress) {
-    const account = await this.signer.getAddress();
-    const isAdmin = await this.hasRole(this.ROLES.ADMIN, account);
-    if (!isAdmin) throw new Error("Only ADMIN can set research token");
-
-    const tx = await this.contracts.medicalRecords.setResearchToken(tokenAddress);
-    return await tx.wait();
+  async getRole(userAddress) {
+    await this.init();
+    try {
+      return await this.contract.getRole(userAddress);
+    } catch (error) {
+      console.error("Error getting role:", error);
+      return "none";
+    }
   }
 
-  // ================= EVENTS =================
-  // Safe event listener methods
+  async getCurrentAddress() {
+    await this.init();
+    return await this.signer.getAddress();
+  }
+
+  // Event listeners
   onRecordAdded(callback) {
-    if (this.contracts.medicalRecords) {
-      this.contracts.medicalRecords.on("RecordAdded", callback);
-    }
-  }
-
-  onConsentGranted(callback) {
-    if (this.contracts.medicalRecords) {
-      this.contracts.medicalRecords.on("ConsentGranted", callback);
-    }
-  }
-
-  onConsentRevoked(callback) {
-    if (this.contracts.medicalRecords) {
-      this.contracts.medicalRecords.on("ConsentRevoked", callback);
+    if (this.contract) {
+      this.contract.on('MedicalRecordAdded', callback);
     }
   }
 
   onAccessRequested(callback) {
-    if (this.contracts.accessRequests) {
-      this.contracts.accessRequests.on("AccessRequested", callback);
+    if (this.contract) {
+      this.contract.on('AccessRequested', callback);
     }
   }
 
   onAccessApproved(callback) {
-    if (this.contracts.accessRequests) {
-      this.contracts.accessRequests.on("AccessApproved", callback);
+    if (this.contract) {
+      this.contract.on('AccessApproved', callback);
     }
   }
 
-  // Safe remove all listeners
+  onConsentGranted(callback) {
+    if (this.contract) {
+      this.contract.on('ConsentGranted', callback);
+    }
+  }
+
+  onConsentRevoked(callback) {
+    if (this.contract) {
+      this.contract.on('ConsentRevoked', callback);
+    }
+  }
+
   removeAllListeners() {
-    try {
-      Object.values(this.contracts).forEach(contract => {
-        if (contract && typeof contract.removeAllListeners === 'function') {
-          contract.removeAllListeners();
-        }
-      });
-    } catch (error) {
-      console.error("Error removing listeners:", error);
+    if (this.contract) {
+      this.contract.removeAllListeners();
     }
-  }
-
-  // Check if contracts are initialized
-  isInitialized() {
-    return this.initialized && Object.keys(this.contracts).length > 0;
   }
 }
 

@@ -1,42 +1,41 @@
-const hre = require("hardhat");
+// scripts/deploy.js
+const fs = require("fs");
+const { ethers } = require("hardhat");
 
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
-  console.log("Deploying contracts with account:", deployer.address);
+  console.log("Deploying MedicalRecords contract...");
 
-  // 1️⃣ Deploy Research Token
-  const ResearchToken = await hre.ethers.getContractFactory("ResearchAccessToken");
-  const researchToken = await ResearchToken.deploy();
-  await researchToken.deployed();
-  console.log("ResearchToken deployed to:", researchToken.address);
+  const [deployer] = await ethers.getSigners();
+  console.log("Deploying contracts with the account:", deployer.address);
+  console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  // 2️⃣ Deploy Roles contract
-  const Roles = await hre.ethers.getContractFactory("Roles");
-  const roles = await Roles.deploy();
-  await roles.deployed();
-  console.log("Roles deployed to:", roles.address);
+  // Deploy the contract
+  const MedicalRecords = await ethers.getContractFactory("MedicalRecords");
+  const medicalRecords = await MedicalRecords.deploy();
+  await medicalRecords.deployed();
 
-  // 3️⃣ Deploy MedicalRecordsStorage with Roles already deployed
-  const MedicalRecordsStorage = await hre.ethers.getContractFactory("MedicalRecordsStorage");
-  const medicalRecordsStorage = await MedicalRecordsStorage.deploy();
-  await medicalRecordsStorage.deployed();
-  console.log("MedicalRecordsStorage deployed to:", medicalRecordsStorage.address);
+  console.log("MedicalRecords contract deployed to:", medicalRecords.address);
 
-  // 4️⃣ Deploy AccessRequests with MedicalRecordsStorage inherited
-  const AccessRequests = await hre.ethers.getContractFactory("AccessRequests");
-  const accessRequests = await AccessRequests.deploy();
-  await accessRequests.deployed();
-  console.log("AccessRequests deployed to:", accessRequests.address);
+  // Save deployment info to JSON file
+  const deploymentInfo = {
+    network: "localhost",
+    contractAddress: medicalRecords.address,
+    deployer: deployer.address,
+    timestamp: new Date().toISOString()
+  };
 
-  // 5️⃣ Set Research Token (ensure deployer has admin role in MedicalRecordsStorage)
-  const tx = await medicalRecordsStorage.setResearchToken(researchToken.address);
-  await tx.wait();
-  console.log("Research token set in MedicalRecordsStorage:", researchToken.address);
+  fs.writeFileSync(
+    "deployment.json",
+    JSON.stringify(deploymentInfo, null, 2)
+  );
 
-  console.log("✅ Deployment finished successfully!");
+  console.log("Deployment info saved to deployment.json");
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+// Run the script
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("Deployment failed:", error);
+    process.exit(1);
+  });
