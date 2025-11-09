@@ -11,6 +11,7 @@ import {
 import ContractService from "../config/contractService";
 import { useWallet } from "../context/WalletContext";
 import axios from "axios";
+import jsPDF from 'jspdf';
 const UploadData = () => {
   const { walletAddress } = useWallet();
   const [file, setFile] = useState(null);
@@ -24,7 +25,11 @@ const UploadData = () => {
     blockchain: 0,
     status: "",
   });
-
+const [currentSimulationRecord, setCurrentSimulationRecord] = useState({
+  current: 0,
+  total: 0,
+  patientName: ""
+});
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -223,6 +228,323 @@ const UploadData = () => {
       setIsLoading(false);
     }
   };
+
+
+const realTimeSimulation = async () => {
+  if (!walletAddress) {
+    setError("Please connect your wallet first");
+    return;
+  }
+
+  setIsLoading(true);
+  setError(null);
+  setIsSuccess(false);
+  setUploadProgress({
+    ipfs: 0,
+    blockchain: 0,
+    status: "Starting real-time simulation...",
+  });
+
+  try {
+    // Single patient data with multiple instances
+    const patientData = {
+      patient_id: "P1001",
+      patient_name: "Patient1",
+      age: "45",
+      baseDiagnosis: "Hypertension",
+    };
+
+    // Multiple medical records for the same patient at different times
+    const medicalRecords = [
+      {
+        date: "2024-01-15",
+        diagnosis: "Hypertension - Initial Diagnosis",
+        medication: "Lisinopril 10mg",
+        test_results: "BP: 150/95, Heart Rate: 78 bpm",
+        notes: "Initial consultation, prescribed medication"
+      },
+      {
+        date: "2024-02-15", 
+        diagnosis: "Hypertension - Follow Up",
+        medication: "Lisinopril 10mg, Hydrochlorothiazide 12.5mg",
+        test_results: "BP: 140/90, Heart Rate: 72 bpm",
+        notes: "Blood pressure improved but still elevated, added diuretic"
+      },
+      {
+        date: "2024-03-15",
+        diagnosis: "Hypertension - Stable",
+        medication: "Lisinopril 10mg, Hydrochlorothiazide 12.5mg",
+        test_results: "BP: 130/85, Heart Rate: 70 bpm",
+        notes: "Blood pressure well controlled, continue current regimen"
+      },
+      {
+        date: "2024-04-15",
+        diagnosis: "Hypertension - Routine Check",
+        medication: "Lisinopril 10mg, Hydrochlorothiazide 12.5mg", 
+        test_results: "BP: 128/82, Heart Rate: 68 bpm, Cholesterol: 180 mg/dL",
+        notes: "Excellent control, added lipid panel - results normal"
+      },
+      {
+        date: "2024-05-15",
+        diagnosis: "Hypertension - Annual Review",
+        medication: "Lisinopril 10mg, Hydrochlorothiazide 12.5mg",
+        test_results: "BP: 125/80, Heart Rate: 66 bpm, ECG: Normal",
+        notes: "Annual comprehensive checkup - all parameters normal"
+      }
+    ];
+
+    const recordsToProcess = medicalRecords.slice(0, 5); // Process all 5 records
+
+    // Process each medical record for the same patient
+    for (let i = 0; i < recordsToProcess.length; i++) {
+      const record = recordsToProcess[i];
+      
+      // Combine patient data with specific record data
+      const fullRecord = {
+        ...patientData,
+        ...record,
+        visit_type: i === 0 ? "Initial Visit" : 
+                    i === recordsToProcess.length - 1 ? "Annual Review" : "Follow Up Visit"
+      };
+      
+      setUploadProgress({
+        ipfs: 0,
+        blockchain: 0,
+        status: `Processing visit ${i + 1}/${recordsToProcess.length}: ${fullRecord.date}`
+      });
+
+      // Create proper PDF for this medical record
+      const pdfBlob = await createPatientPDF(fullRecord, i);
+
+      // Upload to IPFS
+      setUploadProgress({
+        ipfs: 0,
+        blockchain: 0,
+        status: `Uploading medical record from ${fullRecord.date} to IPFS...`
+      });
+
+      const ipfsHash = await uploadPDFBlobToIPFS(pdfBlob, patientData.patient_name, i);
+
+      if (!ipfsHash) {
+        throw new Error(`IPFS upload failed for record ${i + 1}`);
+      }
+
+      setUploadProgress({
+        ipfs: 100,
+        blockchain: 0,
+        status: `Storing medical record from ${fullRecord.date} on blockchain...`
+      });
+
+      // Store on blockchain using existing function
+      const blockchainReceipt = await storeOnBlockchain(
+        ipfsHash,
+        "pdf",
+        pdfBlob.size,
+        `Medical Record - ${patientData.patient_name} - ${fullRecord.date}`
+      );
+
+      console.log(`Record ${i + 1} stored successfully:`, {
+        patient: patientData.patient_name,
+        date: fullRecord.date,
+        ipfsHash,
+        blockchainTx: blockchainReceipt.hash,
+      });
+
+      // Brief pause between records to simulate real-time processing
+      await new Promise(resolve => setTimeout(resolve, 2500));
+    }
+
+    // Success
+    setUploadProgress({
+      ipfs: 100,
+      blockchain: 100,
+      status: `Real-time simulation completed! ${recordsToProcess.length} medical records for ${patientData.patient_name} processed.`
+    });
+    
+    setIsSuccess(true);
+
+  } catch (err) {
+    console.error("Real-time simulation failed:", err);
+    
+    let errorMessage = err.message || "Failed to run simulation";
+    
+    if (errorMessage.includes("user rejected")) {
+      errorMessage = "Transaction was rejected. Please try again.";
+    } else if (errorMessage.includes("insufficient funds")) {
+      errorMessage = "Insufficient funds for transaction.";
+    } else if (errorMessage.includes("Invalid PDF structure")) {
+      errorMessage = "PDF generation failed. Please try again.";
+    }
+
+    setError(errorMessage);
+    setUploadProgress({
+      ipfs: 0,
+      blockchain: 0,
+      status: "Simulation failed."
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Updated PDF creation function for patient medical records
+const createPatientPDF = async (record, visitNumber) => {
+  return new Promise((resolve) => {
+    const doc = new jsPDF();
+    
+    // Set document properties
+    doc.setProperties({
+      title: `Medical Record - ${record.patient_name} - ${record.date}`,
+      subject: 'Medical Record',
+      author: 'MedChain Healthcare System',
+      keywords: 'medical, record, patient, healthcare',
+      creator: 'MedChain'
+    });
+
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40, 40, 40);
+    doc.text('MEDICAL RECORD', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Visit: ${visitNumber + 1} of 5 | Generated: ${new Date().toLocaleString()}`, 105, 28, { align: 'center' });
+    
+    // Line separator
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, 35, 190, 35);
+    
+    // Patient Information Section
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('PATIENT INFORMATION', 20, 50);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    let yPosition = 60;
+    
+    const patientInfo = [
+      `Patient ID: ${record.patient_id}`,
+      `Name: ${record.patient_name}`,
+      `Age: ${record.age} years`,
+      `Visit Date: ${record.date}`,
+      `Visit Type: ${record.visit_type}`,
+      `Diagnosis: ${record.diagnosis}`
+    ];
+    
+    patientInfo.forEach(info => {
+      doc.text(info, 25, yPosition);
+      yPosition += 6;
+    });
+    
+    yPosition += 5;
+    
+    // Medical Details Section
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('MEDICAL DETAILS', 20, yPosition);
+    
+    yPosition += 10;
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    
+    const medicalDetails = [
+      `Medication: ${record.medication}`,
+      `Test Results: ${record.test_results}`,
+      `Clinical Notes: ${record.notes}`
+    ];
+    
+    medicalDetails.forEach(detail => {
+      // Handle long text by splitting into multiple lines
+      const lines = doc.splitTextToSize(detail, 160);
+      lines.forEach(line => {
+        doc.text(line, 25, yPosition);
+        yPosition += 5;
+      });
+      yPosition += 2;
+    });
+    
+    // Progress Section
+    yPosition += 5;
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.text('TREATMENT PROGRESS', 20, yPosition);
+    
+    yPosition += 8;
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    
+    const progressNotes = [
+      "✓ Regular monitoring of blood pressure",
+      "✓ Medication adherence confirmed", 
+      "✓ Lifestyle modifications discussed",
+      "✓ No adverse effects reported",
+      "✓ Follow-up schedule maintained"
+    ];
+    
+    progressNotes.forEach(note => {
+      doc.text(note, 25, yPosition);
+      yPosition += 5;
+    });
+    
+    // Footer
+    yPosition += 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPosition, 190, yPosition);
+    
+    yPosition += 8;
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`This medical record is part of an ongoing treatment plan for ${record.patient_name}.`, 105, yPosition, { align: 'center' });
+    doc.text('All records are securely stored on blockchain via MedChain Healthcare System.', 105, yPosition + 4, { align: 'center' });
+
+    // Convert to blob
+    const pdfBlob = doc.output('blob');
+    resolve(pdfBlob);
+  });
+};
+
+// Upload function remains the same
+const uploadPDFBlobToIPFS = async (pdfBlob, patientName, index) => {
+  try {
+    const formData = new FormData();
+    formData.append("file", pdfBlob, `medical-record-${patientName.replace(/\s+/g, '-')}-visit-${index + 1}.pdf`);
+    formData.append("description", `Medical record for ${patientName} - Visit ${index + 1}`);
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/upload/pdf-to-fhir`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+          let progress = 0;
+          if (progressEvent.total && progressEvent.total > 0) {
+            progress = Math.round((progressEvent.loaded * 70) / progressEvent.total);
+          } else {
+            progress = Math.min(70, Math.round((progressEvent.loaded / (1024 * 1024)) * 10));
+          }
+          setUploadProgress(prev => ({
+            ...prev,
+            ipfs: progress,
+            status: `Uploading medical record ${index + 1} to IPFS... ${progress}%`
+          }));
+        },
+      }
+    );
+
+    const { cid } = response.data;
+    if (!cid) {
+      throw new Error("IPFS hash not returned from server");
+    }
+
+    return cid;
+  } catch (error) {
+    console.error("IPFS upload failed:", error);
+    throw new Error("Failed to upload to IPFS: " + error.message);
+  }
+};
 
   const resetForm = () => {
     setFile(null);
@@ -426,6 +748,44 @@ const UploadData = () => {
             </button>
           )}
         </div>
+      </div>
+     {/* Simulation Progress */}
+{isLoading && uploadProgress.status && (
+  <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+    <h3 className="text-lg font-medium text-purple-800 mb-2">
+      Real-Time Simulation in Progress
+    </h3>
+    <div className="space-y-2">
+      <div className="flex justify-between text-sm text-purple-700">
+        <span>Status</span>
+        <span className="font-medium">{uploadProgress.status}</span>
+      </div>
+      <div className="w-full bg-purple-200 rounded-full h-2">
+        <div
+          className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+          style={{ 
+            width: `${(uploadProgress.ipfs + uploadProgress.blockchain) / 2}%` 
+          }}
+        ></div>
+      </div>
+      <div className="text-xs text-purple-600">
+        Processing simulated medical records automatically...
+      </div>
+    </div>
+  </div>
+)}
+
+      <p className="text-xl text-center my-4 text-slate-400">OR</p>
+      <div className="flex justify-center">
+       <button 
+  onClick={realTimeSimulation} 
+  disabled={isLoading || !walletAddress}
+  className={`relative px-8 py-3 outline-none font-semibold text-white rounded-2xl bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out ${
+    isLoading || !walletAddress ? 'opacity-50 cursor-not-allowed' : ''
+  }`}
+>
+  Real-Time Simulation
+</button>
       </div>
 
       {/* Help Text */}
