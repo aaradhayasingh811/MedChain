@@ -188,6 +188,8 @@ MedChain/
 
 1. Authentication Flow
 
+```mermaid
+
 sequenceDiagram
     participant U as User
     participant C as Client
@@ -203,6 +205,8 @@ sequenceDiagram
     B-->>C: Return token & user data
     C->>C: Store token in secure storage
     C-->>U: Redirect to dashboard
+```
+
 
 #### Detailed Steps:
 
@@ -216,6 +220,8 @@ sequenceDiagram
 
 
 2. Record Upload & Publication Flow
+
+```mermaid
 
 sequenceDiagram
     participant U as User
@@ -236,7 +242,7 @@ sequenceDiagram
     C->>BC: Call addRecord(CID, metadataHash)
     BC-->>C: Transaction receipt
     C-->>U: Display success confirmation
-
+```
 
 #### Detailed Steps:
 
@@ -263,6 +269,8 @@ sequenceDiagram
 
 #### 3. Consent Management Flow
 
+```mermaid
+
 sequenceDiagram
     participant P as Patient
     participant C as Client
@@ -281,7 +289,7 @@ sequenceDiagram
     B-->>C: Success response
     B->>DR: Email notification
     DR->>C: Access records with consent
-
+```
 
 ##### Consent Types:
 
@@ -293,6 +301,7 @@ sequenceDiagram
 
 #### 4. Clinical Chatbot Flow
 
+```mermaid
 sequenceDiagram
     participant U as User
     participant C as Client
@@ -308,7 +317,7 @@ sequenceDiagram
     B->>DB: Store chat session
     B-->>C: Return AI response
     C-->>U: Display formatted response
-
+```
 
 ##### AI Integration:
 
