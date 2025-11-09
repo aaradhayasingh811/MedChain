@@ -11,14 +11,6 @@ function encryptBuffer(buffer, key) {
   return Buffer.concat([iv, encrypted]); 
 }
 
-// function decryptBuffer(encryptedBuffer, key) {
-//   const iv = encryptedBuffer.slice(0, IV_LENGTH);
-//   const encryptedData = encryptedBuffer.slice(IV_LENGTH);
-
-//   const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(key, "hex"), iv);
-//   const decrypted = Buffer.concat([decipher.update(encryptedData), decipher.final()]);
-//   return decrypted;
-// }
 
 function decryptBuffer(encryptedBuffer, key) {
   const iv = encryptedBuffer.slice(0, IV_LENGTH);
