@@ -377,7 +377,7 @@ const RegisterPage = () => {
           Registering as *
         </label>
         <div className="grid grid-cols-2 gap-3">
-          {["patient", "doctor", "researcher", "emergency"].map((role) => (
+          {["patient", "doctor"].map((role) => (
             <button
               key={role}
               type="button"
@@ -633,3 +633,6 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+
+
+        //  {["patient", "doctor", "researcher", "emergency"].map((role) => ( 

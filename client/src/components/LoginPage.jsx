@@ -328,7 +328,7 @@ const LoginPage = ({ setUser }) => {
                 >
                   Doctor
                 </button>
-                <button
+                {/* <button
                   type="button"
                   onClick={() => setRole("researcher")}
                   className={`py-2 px-4 border rounded-md text-sm font-medium ${
@@ -349,7 +349,7 @@ const LoginPage = ({ setUser }) => {
                   }`}
                 >
                   Emergency Responder
-                </button>
+                </button> */}
               </div>
             </div>
 
