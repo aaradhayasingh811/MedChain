@@ -60,6 +60,10 @@ import ConnectWallet from "./components/ConnectWallet";
 import ViewMyRecords from "./components/ViewMyRecords";
 import "./App.css";
 import ViewAccessedRecords from "./components/ViewAccessedRecords";
+import SymptomsChecker from "./components/SymptomsChecker";
+import EmergencyChat from "./components/EmergencyChat";
+import MedicationHelp from "./components/MedicationHelp";
+
 
 function AppWrapper() {
   const location = useLocation();
@@ -82,10 +86,14 @@ function AppWrapper() {
       {shouldShowNavbar && <Navbar user={user} setUser={setUser} walletAddress={walletAddress} />}
       <Routes>
         <Route path="/" element={<HeroPage />} />
+        <Route path="/emergency-chat" element={<EmergencyChat />} />
+        <Route path="/symptoms-checker" element={<SymptomsChecker />} />
+        <Route path="/medication-help" element={<MedicationHelp />} />
         <Route 
           path="/login" 
           element={user ? <Navigate to="/dashboard" /> : <LoginPage setUser={setUser} />} 
         />
+
         <Route 
           path="/register" 
           element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} 

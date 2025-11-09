@@ -13,6 +13,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/upload',require('./routes/uploadRoute'));
+app.use('/api/chat',require("./routes/chatRoutes"));
 
 connectDB();
 const PORT = process.env.PORT || 5000;
