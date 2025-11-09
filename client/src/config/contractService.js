@@ -212,7 +212,7 @@ class ContractService {
     this.isInitialized = false;
     
     this.contractABI = MedicalRecordsABI;
-    this.contractAddress = "0x8d319688d7ABd50741694c9afBE35D15e073f018"; 
+    this.contractAddress = "0xf7591d837767ce7d8C50748458BecE0403c83240"; 
     
     this.ROLES = {
       PATIENT: "patient",

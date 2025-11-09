@@ -1,8 +1,11 @@
 const axios = require("axios");
 const FormData = require("form-data");
+const { decryptBuffer } = require("./encrypt");
 
 const PINATA_API_KEY = process.env.PINATA_API_KEY;
 const PINATA_API_SECRET = process.env.PINATA_API_SECRET;
+const PINATA_GATEWAY = "https://gateway.pinata.cloud/ipfs/";
+
 
 async function uploadBuffer(buffer, filename = "fhir.enc") {
   const data = new FormData();
@@ -21,4 +24,29 @@ async function uploadBuffer(buffer, filename = "fhir.enc") {
   return res.data.IpfsHash;
 }
 
-module.exports = { uploadBuffer };
+
+/**
+ * Download and decrypt file from IPFS
+ */
+async function downloadFromIPFS(cid, key) {
+  try {
+    const url = `${PINATA_GATEWAY}${cid}`;
+
+    const res = await axios.get(url, { responseType: "arraybuffer" });
+    // console.log("Downloaded data from IPFS:", res.data);
+    const encryptedBuffer = Buffer.from(res.data);
+    console.log("Encrypted buffer:", encryptedBuffer)
+
+    // decrypt with your key
+    const decryptedBuffer = decryptBuffer(encryptedBuffer, key);
+
+    return decryptedBuffer;
+  } catch (err) {
+    console.error("Download from IPFS failed:", err.response?.data || err.message);
+    throw err;
+  }
+}
+
+module.exports = { uploadBuffer, downloadFromIPFS };
+
+
